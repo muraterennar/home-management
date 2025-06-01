@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:home_management/core/constants/app_constants.dart';
 import 'package:home_management/features/expense/domain/entities/expense_entity.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class AddExpenseScreen extends StatefulWidget {
@@ -17,7 +20,8 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
   final _titleController = TextEditingController();
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
-  
+
+  File? _image;
   DateTime _selectedDate = DateTime.now();
   ExpenseCategory _selectedCategory = ExpenseCategory.food;
   bool _isLoading = false;
@@ -28,6 +32,48 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
     _amountController.dispose();
     _descriptionController.dispose();
     super.dispose();
+  }
+
+  Future<void> _openCamera() async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 85, // Optimize image quality
+      );
+
+      if (pickedFile != null) {
+        // Create a unique filename using timestamp
+        final timestamp = DateTime.now().millisecondsSinceEpoch;
+        final fileName = 'expense_receipt_$timestamp.jpg';
+
+        // Get the temporary file
+        final imageFile = File(pickedFile.path);
+
+        // TODO: Upload image to storage service
+        // Example using Firebase Storage:
+        // final storageRef = FirebaseStorage.instance.ref().child('receipts/$fileName');
+        // final uploadTask = await storageRef.putFile(imageFile);
+        // final downloadUrl = await uploadTask.ref.getDownloadURL();
+
+        setState(() {
+          _image = imageFile;
+          // Store the download URL in your expense entity
+          // _imageUrl = downloadUrl;
+        });
+      } else {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Kamera iptal edildi')),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text('Fotoğraf yüklenirken hata oluştu: ${e.toString()}')),
+      );
+    }
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -53,10 +99,11 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
 
       try {
         // Burada normalde expense provider'a add isteği gönderilecek
-        await Future.delayed(const Duration(seconds: 2)); // Simüle edilmiş işlem
-        
+        await Future.delayed(
+            const Duration(seconds: 2)); // Simüle edilmiş işlem
+
         if (!mounted) return;
-        
+
         // Başarılı harcama ekleme sonrası harcama listesine dön
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Harcama başarıyla eklendi')),
@@ -65,7 +112,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
       } catch (e) {
         // Hata durumunda snackbar göster
         if (!mounted) return;
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString())),
         );
@@ -110,13 +157,15 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   },
                 ),
                 const SizedBox(height: AppConstants.defaultPadding),
-                
+
                 // Tutar alanı
                 TextFormField(
                   controller: _amountController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
                   inputFormatters: [
-                    FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                    FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d+\.?\d{0,2}')),
                   ],
                   decoration: const InputDecoration(
                     labelText: 'Tutar',
@@ -138,7 +187,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   },
                 ),
                 const SizedBox(height: AppConstants.defaultPadding),
-                
+
                 // Kategori seçimi
                 DropdownButtonFormField<ExpenseCategory>(
                   value: _selectedCategory,
@@ -167,7 +216,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   },
                 ),
                 const SizedBox(height: AppConstants.defaultPadding),
-                
+
                 // Tarih seçimi
                 InkWell(
                   onTap: () => _selectDate(context),
@@ -182,7 +231,7 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   ),
                 ),
                 const SizedBox(height: AppConstants.defaultPadding),
-                
+
                 // Açıklama alanı
                 TextFormField(
                   controller: _descriptionController,
@@ -195,17 +244,47 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
                   ),
                 ),
                 const SizedBox(height: AppConstants.largePadding),
-                
+
+                Center(
+                    child: _image != null
+                        ? Column(
+                            children: [
+                              Image.file(_image!), // Fotoğrafı gösteriyoruz
+                              Padding(
+                                padding: const EdgeInsets.all(12.0),
+                                child: Text(
+                                  'Fatura: ${DateFormat('dd-MM-yyyy_HH-mm').format(_selectedDate)}', // Show date and time with filename
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          )
+                        : const Column(children: [
+                            Padding(
+                              padding: EdgeInsets.fromLTRB(0, 0, 0, 22),
+                              child: Text(
+                                'Fatura Eklenmedi',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ])),
+
                 // Fotoğraf ekleme butonu (opsiyonel özellik)
                 OutlinedButton.icon(
                   onPressed: () {
-                    // Fotoğraf ekleme işlemi
+                    _openCamera();
                   },
                   icon: const Icon(Icons.photo_camera),
                   label: const Text('Fatura Fotoğrafı Ekle'),
                 ),
                 const SizedBox(height: AppConstants.defaultPadding),
-                
+
                 // Kaydet butonu
                 ElevatedButton(
                   onPressed: _isLoading ? null : _saveExpense,
@@ -284,6 +363,6 @@ class _AddExpenseScreenState extends State<AddExpenseScreen> {
         return 'Market';
       case ExpenseCategory.other:
         return 'Diğer';
-        }
+    }
   }
 }
