@@ -44,8 +44,9 @@ dependencies:
   uuid: ^4.3.3
   logger: ^2.0.2+1
   path_provider: ^2.1.2
-  excel: ^4.0.2
+  excel: 2.0.4
   permission_handler: ^11.3.0
+  open_file: ^3.3.2
   
   # DI
   get_it: ^7.6.7
