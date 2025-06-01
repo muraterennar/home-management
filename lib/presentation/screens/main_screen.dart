@@ -105,23 +105,7 @@ class _MainScreenState extends State<MainScreen> with SingleTickerProviderStateM
             ],
           ),
         ),
-      ),
-      floatingActionButton: _currentIndex == 1
-          ? ScaleTransition(
-              scale: _fabScaleAnimation,
-              child: FloatingActionButton(
-                onPressed: () => context.push('/expenses/add'),
-                tooltip: 'Harcama Ekle',
-                backgroundColor: theme.colorScheme.primary,
-                foregroundColor: theme.colorScheme.onPrimary,
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(Icons.add),
-              ),
-            )
-          : null,
+      )
     );
   }
 
