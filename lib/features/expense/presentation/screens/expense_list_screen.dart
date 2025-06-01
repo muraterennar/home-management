@@ -23,6 +23,12 @@ class _ExpenseListScreenState extends State<ExpenseListScreen>
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<Offset> _slideAnimation;
+  
+  // Filtreleme için state değişkenleri
+  final Set<ExpenseCategory> _selectedCategories = {};
+  DateTime? _startDate;
+  DateTime? _endDate;
+  
   final List<ExpenseEntity> _expenses = [
     // Dummy data
     ExpenseEntity(
@@ -297,7 +303,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen>
             ? const Center(child: CircularProgressIndicator())
             : RefreshIndicator(
                 onRefresh: _refreshExpenses,
-                child: _expenses.isEmpty
+                child: _filteredExpenses.isEmpty
                     ? _buildEmptyState()
                     : FadeTransition(
                         opacity: _fadeAnimation,
@@ -344,20 +350,21 @@ class _ExpenseListScreenState extends State<ExpenseListScreen>
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: () {
-                  context.push('/main/expenses/add');
-                },
-                icon: const Icon(Icons.add),
-                label: const Text('Harcama Ekle'),
-                style: ElevatedButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                  elevation: 4,
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: ElevatedButton.icon(
+                  onPressed: () => context.push('/expenses/add'),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Harcama Ekle'),
+                  style: ElevatedButton.styleFrom(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                    elevation: 4,
+                  ),
                 ),
-              ),
+              )
             ],
           ),
         ),
@@ -369,9 +376,9 @@ class _ExpenseListScreenState extends State<ExpenseListScreen>
     return ListView.builder(
       physics: const BouncingScrollPhysics(),
       padding: const EdgeInsets.all(AppConstants.defaultPadding),
-      itemCount: _expenses.length,
+      itemCount: _filteredExpenses.length,
       itemBuilder: (context, index) {
-        final expense = _expenses[index];
+        final expense = _filteredExpenses[index];
         return Card(
           elevation: 4,
           shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
@@ -432,7 +439,38 @@ class _ExpenseListScreenState extends State<ExpenseListScreen>
     );
   }
 
+  // Filtrelenmiş harcamaları döndüren getter
+  List<ExpenseEntity> get _filteredExpenses {
+    return _expenses.where((expense) {
+      // Kategori filtresi
+      if (_selectedCategories.isNotEmpty && !_selectedCategories.contains(expense.category)) {
+        return false;
+      }
+      
+      // Başlangıç tarihi filtresi
+      if (_startDate != null && expense.date.isBefore(_startDate!)) {
+        return false;
+      }
+      
+      // Bitiş tarihi filtresi
+      if (_endDate != null) {
+        // Bitiş tarihini günün sonuna ayarla (23:59:59)
+        final endOfDay = DateTime(_endDate!.year, _endDate!.month, _endDate!.day, 23, 59, 59);
+        if (expense.date.isAfter(endOfDay)) {
+          return false;
+        }
+      }
+      
+      return true;
+    }).toList();
+  }
+
   void _showFilterModal(BuildContext context) {
+    // Geçici değişkenler oluştur (mevcut filtreleri kopyala)
+    final tempSelectedCategories = Set<ExpenseCategory>.from(_selectedCategories);
+    DateTime? tempStartDate = _startDate;
+    DateTime? tempEndDate = _endDate;
+    
     showModalBottomSheet(
       isScrollControlled: true,
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -444,91 +482,136 @@ class _ExpenseListScreenState extends State<ExpenseListScreen>
             width: 1),
       ),
       builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(AppConstants.defaultPadding),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Harcamaları Filtrele',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 16),
-              // Kategori filtreleme
-              const Text('Kategori',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: ExpenseCategory.values.map((category) {
-                  return FilterChip(
-                    label: Text(_getCategoryName(category)),
-                    selected: false, // Burada seçili kategorileri kontrol et
-                    onSelected: (selected) {
-                      // Kategori filtreleme işlemi
-                    },
-                    avatar: Icon(_getCategoryIcon(category)),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 16),
-              // Tarih aralığı
-              const Text('Tarih Aralığı',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Row(
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Padding(
+              padding: const EdgeInsets.all(AppConstants.defaultPadding),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        // Başlangıç tarihi seçimi
-                      },
-                      icon: const Icon(Icons.calendar_today),
-                      label: const Text('Başlangıç'),
-                    ),
+                  const Text(
+                    'Harcamaları Filtrele',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        // Bitiş tarihi seçimi
-                      },
-                      icon: const Icon(Icons.calendar_today),
-                      label: const Text('Bitiş'),
+                  const SizedBox(height: 16),
+                  // Kategori filtreleme
+                  const Text('Kategori',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Wrap(
+                    spacing: 8,
+                    children: ExpenseCategory.values.map((category) {
+                      return FilterChip(
+                        label: Text(_getCategoryName(category)),
+                        selected: tempSelectedCategories.contains(category),
+                        onSelected: (selected) {
+                          setModalState(() {
+                            if (selected) {
+                              tempSelectedCategories.add(category);
+                            } else {
+                              tempSelectedCategories.remove(category);
+                            }
+                          });
+                        },
+                        avatar: Icon(_getCategoryIcon(category)),
+                      );
+                    }).toList(),
+                  ),
+                  const SizedBox(height: 16),
+                  // Tarih aralığı
+                  const Text('Tarih Aralığı',
+                      style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            final DateTime? picked = await showDatePicker(
+                              context: context,
+                              initialDate: tempStartDate ?? DateTime.now(),
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                            );
+                            if (picked != null) {
+                              setModalState(() {
+                                tempStartDate = picked;
+                              });
+                            }
+                          },
+                          icon: const Icon(Icons.calendar_today),
+                          label: Text(tempStartDate == null
+                              ? 'Başlangıç'
+                              : DateFormat('dd.MM.yyyy', 'tr_TR').format(tempStartDate!)),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            final DateTime? picked = await showDatePicker(
+                              context: context,
+                              initialDate: tempEndDate ?? DateTime.now(),
+                              firstDate: DateTime(2020),
+                              lastDate: DateTime.now().add(const Duration(days: 365)),
+                            );
+                            if (picked != null) {
+                              setModalState(() {
+                                tempEndDate = picked;
+                              });
+                            }
+                          },
+                          icon: const Icon(Icons.calendar_today),
+                          label: Text(tempEndDate == null
+                              ? 'Bitiş'
+                              : DateFormat('dd.MM.yyyy', 'tr_TR').format(tempEndDate!)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                      elevation: 2,
                     ),
+                    onPressed: () {
+                      // Filtreleri uygula
+                      setState(() {
+                        _selectedCategories.clear();
+                        _selectedCategories.addAll(tempSelectedCategories);
+                        _startDate = tempStartDate;
+                        _endDate = tempEndDate;
+                      });
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Filtreleri Uygula'),
+                  ),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                    ),
+                    onPressed: () {
+                      // Filtreleri sıfırla
+                      setState(() {
+                        _selectedCategories.clear();
+                        _startDate = null;
+                        _endDate = null;
+                      });
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Filtreleri Sıfırla'),
                   ),
                 ],
               ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                  elevation: 2,
-                ),
-                onPressed: () {
-                  // Filtreleri uygula
-                  Navigator.pop(context);
-                },
-                child: const Text('Filtreleri Uygula'),
-              ),
-              TextButton(
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16)),
-                ),
-                onPressed: () {
-                  // Filtreleri sıfırla
-                  Navigator.pop(context);
-                },
-                child: const Text('Filtreleri Sıfırla'),
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
