@@ -603,76 +603,118 @@ class _BudgetAnalysisScreenState extends State<BudgetAnalysisScreen>
   }
 
   void _showMonthPicker(BuildContext context) {
-    // Basit bir ay seçici modal göster
-    showModalBottomSheet(
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).colorScheme.surface,
+    // Daha hafif ve performanslı bir ay/yıl seçici
+    final currentYear = DateTime.now().year;
+    final yearList = List.generate(5, (index) => currentYear - 2 + index);
+    
+    // Ay isimleri listesi - önceden oluşturulmuş
+    final monthNames = List.generate(12, (index) {
+      return DateFormat('MMMM', 'tr_TR').format(DateTime(2023, index + 1));
+    });
+    
+    int tempSelectedMonth = _selectedMonth;
+    int tempSelectedYear = _selectedYear;
+    
+    showDialog(
       context: context,
-      shape: RoundedRectangleBorder(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        side: BorderSide(
-            color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
-            width: 1),
-      ),
       builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(AppConstants.defaultPadding),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Ay Seçin',
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: Text(
+                'Tarih Seçin',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: Theme.of(context).colorScheme.primary,
                 ),
+                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: List.generate(12, (index) {
-                  final month = index + 1;
-                  final monthName = DateFormat('MMM', 'tr_TR')
-                      .format(DateTime(_selectedYear, month));
-
-                  return ChoiceChip(
-                    selectedColor: Theme.of(context).colorScheme.primary,
-                    backgroundColor: Theme.of(context).colorScheme.surface,
-                    elevation: 2,
-                    label: Text(monthName),
-                    selected: _selectedMonth == month,
-                    onSelected: (selected) {
-                      if (selected) {
-                        Navigator.pop(context);
-                        _changeMonth(month, _selectedYear);
-                      }
-                    },
-                  );
-                }),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16)),
+              content: SizedBox(
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Yıl seçici dropdown
+                    DropdownButtonFormField<int>(
+                      decoration: InputDecoration(
+                        labelText: 'Yıl',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                      value: tempSelectedYear,
+                      items: yearList.map((year) {
+                        return DropdownMenuItem<int>(
+                          value: year,
+                          child: Text(year.toString()),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            tempSelectedYear = value;
+                          });
+                        }
+                      },
                     ),
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _changeMonth(DateTime.now().month, DateTime.now().year);
-                    },
-                    child: const Text('Bu Ay'),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    // Ay seçici dropdown
+                    DropdownButtonFormField<int>(
+                      decoration: InputDecoration(
+                        labelText: 'Ay',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                      value: tempSelectedMonth,
+                      items: List.generate(12, (index) {
+                        final month = index + 1;
+                        return DropdownMenuItem<int>(
+                          value: month,
+                          child: Text(monthNames[index]),
+                        );
+                      }),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            tempSelectedMonth = value;
+                          });
+                        }
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('İptal'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _changeMonth(DateTime.now().month, DateTime.now().year);
+                  },
+                  child: const Text('Bu Ay'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _changeMonth(tempSelectedMonth, tempSelectedYear);
+                  },
+                  child: const Text('Uygula'),
+                ),
+              ],
+            );
+          },
         );
       },
     );

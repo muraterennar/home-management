@@ -4,6 +4,11 @@ import 'package:home_management/core/constants/app_constants.dart';
 import 'package:home_management/features/expense/domain/entities/expense_entity.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui';
+import 'dart:io';
+import 'package:excel/excel.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:open_file/open_file.dart';
 
 class ExpenseListScreen extends StatefulWidget {
   const ExpenseListScreen({super.key});
@@ -12,7 +17,8 @@ class ExpenseListScreen extends StatefulWidget {
   State<ExpenseListScreen> createState() => _ExpenseListScreenState();
 }
 
-class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTickerProviderStateMixin {
+class _ExpenseListScreenState extends State<ExpenseListScreen>
+    with SingleTickerProviderStateMixin {
   bool _isLoading = false;
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -73,7 +79,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTicker
     try {
       // Burada normalde expense provider'dan veri çekilecek
       await Future.delayed(const Duration(seconds: 1)); // Simüle edilmiş işlem
-      
+
       // Dummy data zaten yüklü olduğu için bir şey yapmıyoruz
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -90,12 +96,12 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTicker
   void initState() {
     super.initState();
     _refreshExpenses();
-    
+
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     );
-    
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -103,7 +109,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTicker
       parent: _animationController,
       curve: const Interval(0.0, 0.8, curve: Curves.easeOut),
     ));
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.1),
       end: Offset.zero,
@@ -111,14 +117,134 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTicker
       parent: _animationController,
       curve: const Interval(0.0, 0.8, curve: Curves.easeOut),
     ));
-    
+
     _animationController.forward();
   }
-  
+
   @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
+  }
+
+  // Excel dosyası oluşturma ve kaydetme fonksiyonu
+  Future<void> _exportToExcel() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      // Excel dosyası oluştur
+      final excel = Excel.createExcel(); // varsayılan olarak 'Sheet1' gelir
+      final customSheetName = excel.getDefaultSheet() ?? 'Sheet1';
+      // Sayfa referansını al
+      final Sheet sheet = excel.sheets[customSheetName]!;
+
+      // Başlık satırı ekle
+      sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: 0))
+          .value = 'Başlık';
+      sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: 0))
+          .value = 'Kategori';
+      sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: 0))
+          .value = 'Tutar';
+      sheet
+          .cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: 0))
+          .value = 'Tarih';
+
+      // Başlık satırı için stil oluştur
+      final CellStyle headerStyle = CellStyle(
+        bold: true,
+        backgroundColorHex: "#DDDDDD",
+        horizontalAlign: HorizontalAlign.Center,
+      );
+
+      // Başlık satırına stil uygula
+      for (int i = 0; i < 4; i++) {
+        sheet
+            .cell(CellIndex.indexByColumnRow(columnIndex: i, rowIndex: 0))
+            .cellStyle = headerStyle;
+      }
+
+      // Verileri ekle
+      for (int i = 0; i < _expenses.length; i++) {
+        final expense = _expenses[i];
+        sheet
+            .cell(CellIndex.indexByColumnRow(columnIndex: 0, rowIndex: i + 1))
+            .value = expense.title;
+        sheet
+            .cell(CellIndex.indexByColumnRow(columnIndex: 1, rowIndex: i + 1))
+            .value = _getCategoryName(expense.category);
+        sheet
+            .cell(CellIndex.indexByColumnRow(columnIndex: 2, rowIndex: i + 1))
+            .value = expense.amount;
+        sheet
+            .cell(CellIndex.indexByColumnRow(columnIndex: 3, rowIndex: i + 1))
+            .value = DateFormat('dd.MM.yyyy', 'tr_TR').format(expense.date);
+      }
+
+      // Sütun genişliklerini ayarla
+      sheet.setColWidth(0, 30);
+      sheet.setColWidth(1, 20);
+      sheet.setColWidth(2, 15);
+      sheet.setColWidth(3, 15);
+
+      // Dosyayı kaydet
+      final status = await Permission.storage.request();
+      if (status.isGranted) {
+        final directory = await getApplicationDocumentsDirectory();
+        final String fileName =
+            'Harcamalar_${DateFormat('yyyyMMdd_HHmmss').format(DateTime.now())}.xlsx';
+        final String filePath = '${directory.path}/$fileName';
+
+        final List<int>? fileBytes = excel.save();
+        if (fileBytes != null) {
+          final File file = File(filePath);
+          await file.writeAsBytes(fileBytes);
+
+          // Dosyayı açmak için open_file paketini kullanın
+          try {
+            // Excel dosyasını otomatik olarak aç
+            final result = await OpenFile.open(filePath);
+            
+            if (result.type != ResultType.done) {
+              // Dosya açılamazsa kullanıcıya bildir
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Excel dosyası kaydedildi: $filePath'),
+                  action: SnackBarAction(
+                    label: 'Tekrar Aç',
+                    onPressed: () {
+                      OpenFile.open(filePath);
+                    },
+                  ),
+                ),
+              );
+            }
+          } catch (e) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Dosya açılırken hata oluştu: ${e.toString()}')),
+            );
+          }
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Dosya kaydetme izni verilmedi')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content:
+                Text('Excel dosyası oluşturulurken hata: ${e.toString()}')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -136,6 +262,14 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTicker
         elevation: 0,
         backgroundColor: Colors.transparent,
         actions: [
+          IconButton(
+            icon: Icon(
+              Icons.file_download,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            onPressed: _exportToExcel,
+            tooltip: 'Excel\'e Aktar',
+          ),
           IconButton(
             icon: Icon(
               Icons.filter_list,
@@ -160,19 +294,19 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTicker
           ),
         ),
         child: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
-              onRefresh: _refreshExpenses,
-              child: _expenses.isEmpty
-                ? _buildEmptyState()
-                : FadeTransition(
-                    opacity: _fadeAnimation,
-                    child: SlideTransition(
-                      position: _slideAnimation,
-                      child: _buildExpenseList(),
-                    ),
-                  ),
-            ),
+            ? const Center(child: CircularProgressIndicator())
+            : RefreshIndicator(
+                onRefresh: _refreshExpenses,
+                child: _expenses.isEmpty
+                    ? _buildEmptyState()
+                    : FadeTransition(
+                        opacity: _fadeAnimation,
+                        child: SlideTransition(
+                          position: _slideAnimation,
+                          child: _buildExpenseList(),
+                        ),
+                      ),
+              ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
@@ -217,8 +351,10 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTicker
                 icon: const Icon(Icons.add),
                 label: const Text('Harcama Ekle'),
                 style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
                   elevation: 4,
                 ),
               ),
@@ -239,7 +375,8 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTicker
         return Card(
           elevation: 4,
           shadowColor: Theme.of(context).colorScheme.shadow.withOpacity(0.3),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           margin: const EdgeInsets.only(bottom: 12),
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
@@ -252,14 +389,15 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTicker
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: _getCategoryColor(expense.category).withOpacity(0.3),
+                      color:
+                          _getCategoryColor(expense.category).withOpacity(0.3),
                       blurRadius: 8,
                       offset: const Offset(0, 2),
                     ),
                   ],
                 ),
                 child: Icon(
-                  _getCategoryIcon(expense.category), 
+                  _getCategoryIcon(expense.category),
                   color: Colors.white,
                   size: 24,
                 ),
@@ -269,7 +407,8 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTicker
                 DateFormat('dd MMMM yyyy', 'tr_TR').format(expense.date),
               ),
               trailing: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: Theme.of(context).colorScheme.primaryContainer,
                   borderRadius: BorderRadius.circular(16),
@@ -277,9 +416,9 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTicker
                 child: Text(
                   '${expense.amount.toStringAsFixed(2)} ₺',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    fontWeight: FontWeight.bold,
-                  ),
+                        color: Theme.of(context).colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
               ),
               onTap: () {
@@ -300,7 +439,9 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTicker
       context: context,
       shape: RoundedRectangleBorder(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        side: BorderSide(color: Theme.of(context).colorScheme.outline.withOpacity(0.1), width: 1),
+        side: BorderSide(
+            color: Theme.of(context).colorScheme.outline.withOpacity(0.1),
+            width: 1),
       ),
       builder: (context) {
         return Padding(
@@ -316,7 +457,8 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTicker
               ),
               const SizedBox(height: 16),
               // Kategori filtreleme
-              const Text('Kategori', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Kategori',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
@@ -333,7 +475,8 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTicker
               ),
               const SizedBox(height: 16),
               // Tarih aralığı
-              const Text('Tarih Aralığı', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text('Tarih Aralığı',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -359,10 +502,11 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTicker
                 ],
               ),
               const SizedBox(height: 24),
-              ElevatedButton(  
+              ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
                   elevation: 2,
                 ),
                 onPressed: () {
@@ -374,7 +518,8 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTicker
               TextButton(
                 style: TextButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
                 ),
                 onPressed: () {
                   // Filtreleri sıfırla
