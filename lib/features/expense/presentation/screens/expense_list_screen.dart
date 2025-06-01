@@ -174,15 +174,13 @@ class _ExpenseListScreenState extends State<ExpenseListScreen> with SingleTicker
                   ),
             ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-
+      floatingActionButton: FloatingActionButton(
         onPressed: () {
-          context.push('/main/expenses/add');
+          context.push('/expenses/add');
         },
-        icon: const Icon(Icons.add),
-        label: const Text('Ekle'),
         elevation: 4,
         backgroundColor: Theme.of(context).colorScheme.primary,
+        child: const Icon(Icons.add),
       ),
     );
   }
