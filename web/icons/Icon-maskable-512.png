@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <mask id="mask">
+      <rect width="512" height="512" fill="white"/>
+    </mask>
+  </defs>
+  <rect width="512" height="512" fill="#0175C2"/>
+  <g mask="url(#mask)">
+    <path fill="white" d="M256,96 L368,160 L368,288 L256,352 L144,288 L144,160 L256,96 Z M256,136 L176,184 L176,280 L256,328 L336,280 L336,184 L256,136 Z"/>
+    <path fill="white" d="M256,208 C273.673112,208 288,222.326888 288,240 C288,257.673112 273.673112,272 256,272 C238.326888,272 224,257.673112 224,240 C224,222.326888 238.326888,208 256,208 Z"/>
+  </g>
+</svg>
