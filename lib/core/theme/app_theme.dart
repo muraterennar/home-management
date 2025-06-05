@@ -64,15 +64,13 @@ class AppTheme {
         onTertiaryContainer: Colors.black,
         error: errorColor,
         onError: Colors.white,
-        background: backgroundColor,
-        onBackground: textPrimaryColor,
         surface: surfaceColor,
         onSurface: textPrimaryColor,
       ),
       scaffoldBackgroundColor: backgroundColor,
-      
+
       // Kart teması
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: cardColor,
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -81,7 +79,7 @@ class AppTheme {
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
         clipBehavior: Clip.antiAlias,
       ),
-      
+
       // AppBar teması
       appBarTheme: AppBarTheme(
         backgroundColor: surfaceColor,
@@ -97,7 +95,7 @@ class AppTheme {
         actionsIconTheme: const IconThemeData(color: primaryColor),
         scrolledUnderElevation: 2,
       ),
-      
+
       // Metin teması
       textTheme: TextTheme(
         displayLarge: GoogleFonts.poppins(
@@ -176,12 +174,13 @@ class AppTheme {
           color: primaryColor,
         ),
       ),
-      
+
       // Input dekorasyon teması
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: surfaceColor,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: dividerColor),
@@ -216,7 +215,7 @@ class AppTheme {
           color: primaryColor,
         ),
       ),
-      
+
       // Elevated button teması
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -234,7 +233,7 @@ class AppTheme {
           minimumSize: const Size(double.infinity, 56),
         ),
       ),
-      
+
       // Text button teması
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -249,7 +248,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Outlined button teması
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
@@ -266,27 +265,29 @@ class AppTheme {
           minimumSize: const Size(double.infinity, 56),
         ),
       ),
-      
+
       // Divider teması
       dividerTheme: const DividerThemeData(
         color: dividerColor,
         thickness: 1,
         space: 16,
       ),
-      
+
       // Bottom navigation bar teması
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: surfaceColor,
         selectedItemColor: primaryColor,
         unselectedItemColor: textSecondaryColor,
-        selectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-        unselectedLabelStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        selectedLabelStyle:
+            TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        unselectedLabelStyle:
+            TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
         type: BottomNavigationBarType.fixed,
         elevation: 8,
         showSelectedLabels: true,
         showUnselectedLabels: true,
       ),
-      
+
       // Floating action button teması
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: accentColor,
@@ -295,7 +296,7 @@ class AppTheme {
         shape: CircleBorder(),
         extendedPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       ),
-      
+
       // Snackbar teması
       snackBarTheme: SnackBarThemeData(
         backgroundColor: primaryDarkColor,
@@ -310,9 +311,9 @@ class AppTheme {
         behavior: SnackBarBehavior.floating,
         actionTextColor: secondaryColor,
       ),
-      
+
       // Dialog teması
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: surfaceColor,
         elevation: 8,
         shape: RoundedRectangleBorder(
@@ -329,15 +330,15 @@ class AppTheme {
           color: textPrimaryColor,
         ),
       ),
-      
+
       // Checkbox teması
       checkboxTheme: CheckboxThemeData(
-        fillColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.disabled)) {
+        fillColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.disabled)) {
               return disabledColor;
             }
-            if (states.contains(MaterialState.selected)) {
+            if (states.contains(WidgetState.selected)) {
               return primaryColor;
             }
             return dividerColor;
@@ -347,48 +348,48 @@ class AppTheme {
           borderRadius: BorderRadius.circular(4),
         ),
       ),
-      
+
       // Radio teması
       radioTheme: RadioThemeData(
-        fillColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.disabled)) {
+        fillColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.disabled)) {
               return disabledColor;
             }
-            if (states.contains(MaterialState.selected)) {
+            if (states.contains(WidgetState.selected)) {
               return primaryColor;
             }
             return dividerColor;
           },
         ),
       ),
-      
+
       // Switch teması
       switchTheme: SwitchThemeData(
-        thumbColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.disabled)) {
+        thumbColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.disabled)) {
               return disabledColor;
             }
-            if (states.contains(MaterialState.selected)) {
+            if (states.contains(WidgetState.selected)) {
               return primaryColor;
             }
             return Colors.white;
           },
         ),
-        trackColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.disabled)) {
+        trackColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.disabled)) {
               return disabledColor.withOpacity(0.5);
             }
-            if (states.contains(MaterialState.selected)) {
+            if (states.contains(WidgetState.selected)) {
               return primaryColor.withOpacity(0.5);
             }
             return dividerColor;
           },
         ),
       ),
-      
+
       // Slider teması
       sliderTheme: SliderThemeData(
         activeTrackColor: primaryColor,
@@ -405,14 +406,14 @@ class AppTheme {
           color: Colors.white,
         ),
       ),
-      
+
       // Progress indicator teması
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: primaryColor,
         circularTrackColor: dividerColor,
         linearTrackColor: dividerColor,
       ),
-      
+
       // Tooltip teması
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
@@ -426,7 +427,7 @@ class AppTheme {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
-      
+
       // Popup menu teması
       popupMenuTheme: PopupMenuThemeData(
         color: surfaceColor,
@@ -440,7 +441,7 @@ class AppTheme {
           color: textPrimaryColor,
         ),
       ),
-      
+
       // Chip teması
       chipTheme: ChipThemeData(
         backgroundColor: dividerColor,
@@ -463,9 +464,9 @@ class AppTheme {
           borderRadius: BorderRadius.circular(16),
         ),
       ),
-      
+
       // Tab bar teması
-      tabBarTheme: TabBarTheme(
+      tabBarTheme: TabBarThemeData(
         labelColor: primaryColor,
         unselectedLabelColor: textSecondaryColor,
         indicatorColor: primaryColor,
@@ -479,55 +480,55 @@ class AppTheme {
         ),
         indicatorSize: TabBarIndicatorSize.label,
       ),
-      
+
       // Date picker teması
       datePickerTheme: DatePickerThemeData(
         backgroundColor: surfaceColor,
         headerBackgroundColor: primaryColor,
         headerForegroundColor: Colors.white,
-        dayBackgroundColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.selected)) {
+        dayBackgroundColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
               return primaryColor;
             }
             return surfaceColor;
           },
         ),
-        dayForegroundColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.selected)) {
+        dayForegroundColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
               return Colors.white;
             }
             return textPrimaryColor;
           },
         ),
-        todayBackgroundColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.selected)) {
+        todayBackgroundColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
               return primaryColor;
             }
             return primaryColor.withOpacity(0.1);
           },
         ),
-        todayForegroundColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.selected)) {
+        todayForegroundColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
               return Colors.white;
             }
             return primaryColor;
           },
         ),
-        yearBackgroundColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.selected)) {
+        yearBackgroundColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
               return primaryColor;
             }
             return surfaceColor;
           },
         ),
-        yearForegroundColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.selected)) {
+        yearForegroundColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
               return Colors.white;
             }
             return textPrimaryColor;
@@ -555,7 +556,7 @@ class AppTheme {
           fontWeight: FontWeight.normal,
         ),
       ),
-      
+
       // Time picker teması
       timePickerTheme: TimePickerThemeData(
         backgroundColor: surfaceColor,
@@ -606,15 +607,13 @@ class AppTheme {
         onTertiaryContainer: Colors.white,
         error: errorColor,
         onError: Colors.white,
-        background: darkBackgroundColor,
-        onBackground: darkTextPrimaryColor,
         surface: darkSurfaceColor,
         onSurface: darkTextPrimaryColor,
       ),
       scaffoldBackgroundColor: darkBackgroundColor,
-      
+
       // Kart teması
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: darkCardColor,
         elevation: 2,
         shape: RoundedRectangleBorder(
@@ -623,7 +622,7 @@ class AppTheme {
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
         clipBehavior: Clip.antiAlias,
       ),
-      
+
       // AppBar teması
       appBarTheme: AppBarTheme(
         backgroundColor: darkSurfaceColor,
@@ -639,7 +638,7 @@ class AppTheme {
         actionsIconTheme: const IconThemeData(color: primaryColor),
         scrolledUnderElevation: 2,
       ),
-      
+
       // Metin teması
       textTheme: TextTheme(
         displayLarge: GoogleFonts.poppins(
@@ -718,12 +717,13 @@ class AppTheme {
           color: primaryColor,
         ),
       ),
-      
+
       // Input dekorasyon teması
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: darkCardColor,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(color: dividerColor.withOpacity(0.3)),
@@ -758,7 +758,7 @@ class AppTheme {
           color: primaryColor,
         ),
       ),
-      
+
       // Elevated button teması
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -776,7 +776,7 @@ class AppTheme {
           minimumSize: const Size(double.infinity, 56),
         ),
       ),
-      
+
       // Text button teması
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
@@ -791,7 +791,7 @@ class AppTheme {
           ),
         ),
       ),
-      
+
       // Outlined button teması
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
@@ -808,27 +808,29 @@ class AppTheme {
           minimumSize: const Size(double.infinity, 56),
         ),
       ),
-      
+
       // Divider teması
       dividerTheme: DividerThemeData(
         color: dividerColor.withOpacity(0.3),
         thickness: 1,
         space: 16,
       ),
-      
+
       // Bottom navigation bar teması
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: darkSurfaceColor,
         selectedItemColor: primaryColor,
         unselectedItemColor: darkTextSecondaryColor,
-        selectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-        unselectedLabelStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        selectedLabelStyle:
+            TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+        unselectedLabelStyle:
+            TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
         type: BottomNavigationBarType.fixed,
         elevation: 8,
         showSelectedLabels: true,
         showUnselectedLabels: true,
       ),
-      
+
       // Floating action button teması
       floatingActionButtonTheme: const FloatingActionButtonThemeData(
         backgroundColor: accentColor,
@@ -837,7 +839,7 @@ class AppTheme {
         shape: CircleBorder(),
         extendedPadding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
       ),
-      
+
       // Snackbar teması
       snackBarTheme: SnackBarThemeData(
         backgroundColor: primaryDarkColor,
@@ -852,9 +854,9 @@ class AppTheme {
         behavior: SnackBarBehavior.floating,
         actionTextColor: secondaryColor,
       ),
-      
+
       // Dialog teması
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         backgroundColor: darkCardColor,
         elevation: 8,
         shape: RoundedRectangleBorder(
@@ -871,15 +873,15 @@ class AppTheme {
           color: darkTextPrimaryColor,
         ),
       ),
-      
+
       // Checkbox teması
       checkboxTheme: CheckboxThemeData(
-        fillColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.disabled)) {
+        fillColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.disabled)) {
               return disabledColor;
             }
-            if (states.contains(MaterialState.selected)) {
+            if (states.contains(WidgetState.selected)) {
               return primaryColor;
             }
             return dividerColor.withOpacity(0.5);
@@ -889,48 +891,48 @@ class AppTheme {
           borderRadius: BorderRadius.circular(4),
         ),
       ),
-      
+
       // Radio teması
       radioTheme: RadioThemeData(
-        fillColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.disabled)) {
+        fillColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.disabled)) {
               return disabledColor;
             }
-            if (states.contains(MaterialState.selected)) {
+            if (states.contains(WidgetState.selected)) {
               return primaryColor;
             }
             return dividerColor.withOpacity(0.5);
           },
         ),
       ),
-      
+
       // Switch teması
       switchTheme: SwitchThemeData(
-        thumbColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.disabled)) {
+        thumbColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.disabled)) {
               return disabledColor;
             }
-            if (states.contains(MaterialState.selected)) {
+            if (states.contains(WidgetState.selected)) {
               return primaryColor;
             }
             return darkCardColor;
           },
         ),
-        trackColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.disabled)) {
+        trackColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.disabled)) {
               return disabledColor.withOpacity(0.5);
             }
-            if (states.contains(MaterialState.selected)) {
+            if (states.contains(WidgetState.selected)) {
               return primaryColor.withOpacity(0.5);
             }
             return dividerColor.withOpacity(0.3);
           },
         ),
       ),
-      
+
       // Slider teması
       sliderTheme: SliderThemeData(
         activeTrackColor: primaryColor,
@@ -947,14 +949,14 @@ class AppTheme {
           color: Colors.white,
         ),
       ),
-      
+
       // Progress indicator teması
       progressIndicatorTheme: const ProgressIndicatorThemeData(
         color: primaryColor,
         circularTrackColor: primaryDarkColor,
         linearTrackColor: primaryDarkColor,
       ),
-      
+
       // Tooltip teması
       tooltipTheme: TooltipThemeData(
         decoration: BoxDecoration(
@@ -968,7 +970,7 @@ class AppTheme {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       ),
-      
+
       // Popup menu teması
       popupMenuTheme: PopupMenuThemeData(
         color: darkCardColor,
@@ -982,7 +984,7 @@ class AppTheme {
           color: darkTextPrimaryColor,
         ),
       ),
-      
+
       // Chip teması
       chipTheme: ChipThemeData(
         backgroundColor: darkCardColor,
@@ -1005,9 +1007,9 @@ class AppTheme {
           borderRadius: BorderRadius.circular(16),
         ),
       ),
-      
+
       // Tab bar teması
-      tabBarTheme: TabBarTheme(
+      tabBarTheme: TabBarThemeData(
         labelColor: primaryColor,
         unselectedLabelColor: darkTextSecondaryColor,
         indicatorColor: primaryColor,
@@ -1021,55 +1023,55 @@ class AppTheme {
         ),
         indicatorSize: TabBarIndicatorSize.label,
       ),
-      
+
       // Date picker teması
       datePickerTheme: DatePickerThemeData(
         backgroundColor: darkCardColor,
         headerBackgroundColor: primaryColor,
         headerForegroundColor: Colors.white,
-        dayBackgroundColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.selected)) {
+        dayBackgroundColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
               return primaryColor;
             }
             return darkCardColor;
           },
         ),
-        dayForegroundColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.selected)) {
+        dayForegroundColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
               return Colors.white;
             }
             return darkTextPrimaryColor;
           },
         ),
-        todayBackgroundColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.selected)) {
+        todayBackgroundColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
               return primaryColor;
             }
             return primaryColor.withOpacity(0.1);
           },
         ),
-        todayForegroundColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.selected)) {
+        todayForegroundColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
               return Colors.white;
             }
             return primaryColor;
           },
         ),
-        yearBackgroundColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.selected)) {
+        yearBackgroundColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
               return primaryColor;
             }
             return darkCardColor;
           },
         ),
-        yearForegroundColor: MaterialStateProperty.resolveWith<Color>(
-          (Set<MaterialState> states) {
-            if (states.contains(MaterialState.selected)) {
+        yearForegroundColor: WidgetStateProperty.resolveWith<Color>(
+          (Set<WidgetState> states) {
+            if (states.contains(WidgetState.selected)) {
               return Colors.white;
             }
             return darkTextPrimaryColor;
@@ -1097,7 +1099,7 @@ class AppTheme {
           fontWeight: FontWeight.normal,
         ),
       ),
-      
+
       // Time picker teması
       timePickerTheme: TimePickerThemeData(
         backgroundColor: darkCardColor,

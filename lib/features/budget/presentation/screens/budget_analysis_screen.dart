@@ -128,7 +128,7 @@ class _BudgetAnalysisScreenState extends State<BudgetAnalysisScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
           'Bütçe Analizi',
@@ -154,8 +154,8 @@ class _BudgetAnalysisScreenState extends State<BudgetAnalysisScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).colorScheme.background,
-              Theme.of(context).colorScheme.background.withOpacity(0.8),
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.surface.withOpacity(0.8),
             ],
           ),
         ),

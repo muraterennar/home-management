@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:home_management/core/constants/app_constants.dart';
+import 'package:home_management/features/auth/data/datasources/auth_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -9,13 +10,15 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStateMixin {
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _firebaseAuth = AuthService();
   bool _isLoading = false;
   bool _obscurePassword = true;
-  
+
   // Animasyon kontrolcüsü
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
@@ -24,13 +27,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   @override
   void initState() {
     super.initState();
-    
+
     // Animasyon kontrolcüsünü başlat
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),
     );
-    
+
     _fadeAnimation = Tween<double>(
       begin: 0.0,
       end: 1.0,
@@ -38,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       parent: _animationController,
       curve: Curves.easeInOut,
     ));
-    
+
     _slideAnimation = Tween<Offset>(
       begin: const Offset(0, 0.1),
       end: Offset.zero,
@@ -46,7 +49,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
       parent: _animationController,
       curve: Curves.easeOutCubic,
     ));
-    
+
     // Animasyonu başlat
     _animationController.forward();
   }
@@ -67,16 +70,30 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
 
       try {
         // Burada normalde auth provider'a login isteği gönderilecek
-        await Future.delayed(const Duration(seconds: 2)); // Simüle edilmiş işlem
-        
+
+        final loginUser = await _firebaseAuth.signInWithEmailAndPassword(
+            _emailController.text, _passwordController.text);
+
+        if (loginUser == null) {
+          // Başarısız giriş sonrası snackbar göster
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Kullanıcı bulunamadı'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          return;
+        }
+
         if (!mounted) return;
-        
+
         // Başarılı giriş sonrası yönlendirme
         context.go('/dashboard');
       } catch (e) {
         // Hata durumunda snackbar göster
         if (!mounted) return;
-        
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(e.toString()),
@@ -96,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
@@ -105,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
             end: Alignment.bottomCenter,
             colors: [
               theme.colorScheme.primary.withOpacity(0.05),
-              theme.colorScheme.background,
+              theme.colorScheme.surface,
             ],
           ),
         ),
@@ -132,7 +149,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             borderRadius: BorderRadius.circular(25),
                             boxShadow: [
                               BoxShadow(
-                                color: theme.colorScheme.primary.withOpacity(0.2),
+                                color:
+                                    theme.colorScheme.primary.withOpacity(0.2),
                                 blurRadius: 15,
                                 spreadRadius: 2,
                                 offset: const Offset(0, 5),
@@ -159,16 +177,17 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                           'Ailenizin finansal yönetimi için',
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onBackground.withOpacity(0.7),
+                            color: theme.colorScheme.onSurface.withOpacity(0.7),
                           ),
                         ),
                         const SizedBox(height: AppConstants.largePadding),
-                        
+
                         // Email alanı
                         Card(
                           elevation: 0,
                           color: theme.colorScheme.surface,
-                          margin: const EdgeInsets.only(bottom: AppConstants.defaultPadding),
+                          margin: const EdgeInsets.only(
+                              bottom: AppConstants.defaultPadding),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -190,7 +209,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                 if (value == null || value.isEmpty) {
                                   return AppConstants.emailRequired;
                                 }
-                                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
+                                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                                    .hasMatch(value)) {
                                   return AppConstants.invalidEmail;
                                 }
                                 return null;
@@ -198,12 +218,13 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             ),
                           ),
                         ),
-                        
+
                         // Şifre alanı
                         Card(
                           elevation: 0,
                           color: theme.colorScheme.surface,
-                          margin: const EdgeInsets.only(bottom: AppConstants.smallPadding),
+                          margin: const EdgeInsets.only(
+                              bottom: AppConstants.smallPadding),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -245,23 +266,24 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             ),
                           ),
                         ),
-                        
+
                         // Şifremi Unuttum
                         Align(
                           alignment: Alignment.centerRight,
                           child: TextButton(
                             onPressed: () {
-                              // Şifremi unuttum işlemi
+                              context.push('/forgot-password');
                             },
                             style: TextButton.styleFrom(
                               foregroundColor: theme.colorScheme.primary,
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                             ),
                             child: const Text('Şifremi Unuttum'),
                           ),
                         ),
                         const SizedBox(height: AppConstants.defaultPadding),
-                        
+
                         // Giriş Yap butonu
                         ElevatedButton(
                           onPressed: _isLoading ? null : _login,
@@ -280,16 +302,19 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                                   width: 24,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.white),
                                   ),
                                 )
                               : const Text(
                                   'Giriş Yap',
-                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold),
                                 ),
                         ),
                         const SizedBox(height: AppConstants.defaultPadding),
-                        
+
                         // Kayıt Ol yönlendirmesi
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -297,7 +322,8 @@ class _LoginScreenState extends State<LoginScreen> with SingleTickerProviderStat
                             Text(
                               'Hesabınız yok mu?',
                               style: TextStyle(
-                                color: theme.colorScheme.onBackground.withOpacity(0.7),
+                                color: theme.colorScheme.onSurface
+                                    .withOpacity(0.7),
                               ),
                             ),
                             TextButton(

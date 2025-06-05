@@ -134,7 +134,7 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
             Container(
               padding: const EdgeInsets.all(AppConstants.defaultPadding),
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant,
+                color: Theme.of(context).colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(_expense!.description!),
@@ -205,10 +205,10 @@ class _ExpenseDetailScreenState extends State<ExpenseDetailScreen> {
               Navigator.of(context).pop();
               _deleteExpense();
             },
-            child: const Text('Sil'),
             style: TextButton.styleFrom(
               foregroundColor: Colors.red,
             ),
+            child: const Text('Sil'),
           ),
         ],
       ),
