@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:home_management/features/auth/presentation/screens/forgot_password_screen.dart';
 import 'package:home_management/features/auth/presentation/screens/login_screen.dart';
+import 'package:home_management/features/auth/presentation/screens/profile_edit_screen.dart';
 import 'package:home_management/features/auth/presentation/screens/profile_screen.dart';
 import 'package:home_management/features/auth/presentation/screens/register_screen.dart';
 import 'package:home_management/features/budget/presentation/screens/budget_analysis_screen.dart';
@@ -37,7 +39,10 @@ class AppRouter {
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
       ),
-      
+      GoRoute(
+          path: '/forgot-password',
+          builder: (context, state) => const ForgotPasswordScreen()),
+
       // Family Creation Routes
       GoRoute(
         path: '/create-family',
@@ -47,7 +52,7 @@ class AppRouter {
         path: '/join-family',
         builder: (context, state) => const JoinFamilyScreen(),
       ),
-      
+
       // Main App Shell
       ShellRoute(
         navigatorKey: _shellNavigatorKey,
@@ -58,7 +63,7 @@ class AppRouter {
             path: '/dashboard',
             builder: (context, state) => const DashboardScreen(),
           ),
-          
+
           // Expenses
           GoRoute(
             path: '/expenses',
@@ -76,25 +81,37 @@ class AppRouter {
               ),
             ],
           ),
-          
+
           // Budget Analysis
           GoRoute(
             path: '/budget',
             builder: (context, state) => const BudgetAnalysisScreen(),
           ),
-          
+
           // Family Details
           GoRoute(
             path: '/family',
             builder: (context, state) => const FamilyDetailScreen(),
           ),
-          
+
           // Profile
           GoRoute(
             path: '/profile',
             builder: (context, state) => const ProfileScreen(),
+            routes: [
+              // Profile Edit as a sub-route
+              GoRoute(
+                path: 'edit',
+                builder: (context, state) => const ProfileEditScreen(),
+              ),
+              // You can add change-password here too
+              GoRoute(
+                path: 'change-password',
+                builder: (context, state) => const Text('Change Password Screen'), // Replace with actual screen
+              ),
+            ],
           ),
-          
+
           // Settings
           GoRoute(
             path: '/settings',

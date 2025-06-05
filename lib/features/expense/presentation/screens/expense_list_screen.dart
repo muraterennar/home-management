@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:home_management/core/constants/app_constants.dart';
 import 'package:home_management/features/expense/domain/entities/expense_entity.dart';
 import 'package:intl/intl.dart';
-import 'dart:ui';
 import 'dart:io';
 import 'package:excel/excel.dart';
 import 'package:path_provider/path_provider.dart';
@@ -256,7 +255,7 @@ class _ExpenseListScreenState extends State<ExpenseListScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
           'Harcamalar',
@@ -294,8 +293,8 @@ class _ExpenseListScreenState extends State<ExpenseListScreen>
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).colorScheme.background,
-              Theme.of(context).colorScheme.background.withOpacity(0.8),
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.surface.withOpacity(0.8),
             ],
           ),
         ),

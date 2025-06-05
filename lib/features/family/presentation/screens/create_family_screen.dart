@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:home_management/core/constants/app_constants.dart';
+import 'package:home_management/features/auth/data/datasources/auth_service.dart';
+import 'package:home_management/features/core/data/datasource/data_service.dart';
 
 class CreateFamilyScreen extends StatefulWidget {
   const CreateFamilyScreen({super.key});
@@ -14,6 +16,8 @@ class _CreateFamilyScreenState extends State<CreateFamilyScreen> with SingleTick
   final _formKey = GlobalKey<FormState>();
   final _familyNameController = TextEditingController();
   final _monthlyIncomeController = TextEditingController();
+  final _dataService = DataService();
+  final _authService = AuthService();
   bool _isLoading = false;
   
   // Animasyon kontrolcüsü
@@ -68,11 +72,43 @@ class _CreateFamilyScreenState extends State<CreateFamilyScreen> with SingleTick
       try {
         // Burada normalde family provider'a create isteği gönderilecek
         await Future.delayed(const Duration(seconds: 2)); // Simüle edilmiş işlem
+
+        // Aile oluşturma işlemi
+        final familyName = _familyNameController.text;
+        final monthlyIncome = int.parse(_monthlyIncomeController.text);
+        final currentUser = await _authService.getCurrentUser();
+        final familyCode = _dataService.generateUniqueCode();
+
+        if (currentUser == null) {
+          throw Exception('Kullanıcı bulunamadı');
+        }
+        final familyData = {
+          'name': familyName,
+          'monthlyIncome': monthlyIncome,
+          'code': familyCode,
+          'members': [
+            {
+              'userId': currentUser.uid,
+              'name': currentUser.displayName,
+              'email': currentUser.email,
+            },
+          ],
+        };
+
+        await _dataService.addData('families', familyData);
+
+        // Kullanıcıya familyId ekleyerek güncelle
+        Map<String, dynamic> updatedUser = {
+          'id': currentUser.uid,
+          'familyId': familyCode,
+        };
+
+        await _authService.updateUser(updatedUser);
         
         if (!mounted) return;
         
         // Başarılı aile oluşturma sonrası ana ekrana yönlendirme
-        context.go('/main');
+        context.go('/dashboard');
       } catch (e) {
         // Hata durumunda snackbar göster
         if (!mounted) return;
@@ -111,7 +147,7 @@ class _CreateFamilyScreenState extends State<CreateFamilyScreen> with SingleTick
             end: Alignment.bottomCenter,
             colors: [
               theme.colorScheme.primary.withOpacity(0.05),
-              theme.colorScheme.background,
+              theme.colorScheme.surface,
             ],
           ),
         ),
@@ -143,7 +179,7 @@ class _CreateFamilyScreenState extends State<CreateFamilyScreen> with SingleTick
                           'Finansal yönetim için ailenizi tanımlayın',
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onBackground.withOpacity(0.7),
+                            color: theme.colorScheme.onSurface.withOpacity(0.7),
                           ),
                         ),
                         const SizedBox(height: AppConstants.largePadding),

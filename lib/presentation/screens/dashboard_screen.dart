@@ -62,7 +62,7 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
     final family = _getDummyFamily();
 
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
         title: Text(
           AppConstants.appName,
@@ -89,8 +89,8 @@ class _DashboardScreenState extends State<DashboardScreen> with SingleTickerProv
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              Theme.of(context).colorScheme.background,
-              Theme.of(context).colorScheme.background.withOpacity(0.8),
+              Theme.of(context).colorScheme.surface,
+              Theme.of(context).colorScheme.surface.withOpacity(0.8),
             ],
           ),
         ),

@@ -66,10 +66,11 @@ class _JoinFamilyScreenState extends State<JoinFamilyScreen> with SingleTickerPr
         // Burada normalde family provider'a join isteği gönderilecek
         await Future.delayed(const Duration(seconds: 2)); // Simüle edilmiş işlem
         
+        
         if (!mounted) return;
         
         // Başarılı aileye katılma sonrası ana ekrana yönlendirme
-        context.go('/main');
+        context.go('/dashboard');
       } catch (e) {
         // Hata durumunda snackbar göster
         if (!mounted) return;
@@ -108,7 +109,7 @@ class _JoinFamilyScreenState extends State<JoinFamilyScreen> with SingleTickerPr
             end: Alignment.bottomCenter,
             colors: [
               theme.colorScheme.primary.withOpacity(0.05),
-              theme.colorScheme.background,
+              theme.colorScheme.surface,
             ],
           ),
         ),
@@ -155,7 +156,7 @@ class _JoinFamilyScreenState extends State<JoinFamilyScreen> with SingleTickerPr
                                 child: Text(
                                   'Bir aileye katılmak için, aile yöneticisinden aldığınız davet kodunu girin.',
                                   style: theme.textTheme.bodyMedium?.copyWith(
-                                    color: theme.colorScheme.onBackground,
+                                    color: theme.colorScheme.onSurface,
                                   ),
                                 ),
                               ),
@@ -234,7 +235,7 @@ class _JoinFamilyScreenState extends State<JoinFamilyScreen> with SingleTickerPr
                             Text(
                               'Aileniz yok mu?',
                               style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onBackground.withOpacity(0.7),
+                                color: theme.colorScheme.onSurface.withOpacity(0.7),
                               ),
                             ),
                             TextButton(

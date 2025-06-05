@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:home_management/core/constants/app_constants.dart';
+import 'package:home_management/features/auth/data/datasources/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -15,6 +16,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _authService = AuthService();
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
@@ -71,8 +73,8 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       });
 
       try {
-        // Burada normalde auth provider'a register isteği gönderilecek
-        await Future.delayed(const Duration(seconds: 2)); // Simüle edilmiş işlem
+        // Kullanıcıyı Firebase'e kaydet
+        await _authService.createUserWithEmailAndPassword(_emailController.text, _passwordController.text, _nameController.text);
         
         if (!mounted) return;
         
@@ -116,7 +118,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
             end: Alignment.bottomCenter,
             colors: [
               theme.colorScheme.primary.withOpacity(0.05),
-              theme.colorScheme.background,
+              theme.colorScheme.surface,
             ],
           ),
         ),
@@ -148,7 +150,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                           'Ailenizin finansal yönetimine başlamak için hesap oluşturun',
                           textAlign: TextAlign.center,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onBackground.withOpacity(0.7),
+                            color: theme.colorScheme.onSurface.withOpacity(0.7),
                           ),
                         ),
                         const SizedBox(height: AppConstants.largePadding),
@@ -351,7 +353,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                             Text(
                               'Zaten hesabınız var mı?',
                               style: TextStyle(
-                                color: theme.colorScheme.onBackground.withOpacity(0.7),
+                                color: theme.colorScheme.onSurface.withOpacity(0.7),
                               ),
                             ),
                             TextButton(
