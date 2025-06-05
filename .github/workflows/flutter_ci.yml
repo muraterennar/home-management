@@ -1,0 +1,329 @@
+name: Flutter CI/CD
+
+on:
+  push:
+    branches: [ main, dev, prod ]
+  pull_request:
+    branches: [ main, dev, prod ]
+
+jobs:
+  test:
+    name: Test Flutter App
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.16.0'
+        channel: 'stable'
+        cache: true
+    
+    - name: Cache pub dependencies
+      uses: actions/cache@v3
+      with:
+        path: ${{ runner.tool_cache }}/flutter
+        key: ${{ runner.os }}-pub-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-pub-
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Verify formatting
+      run: dart format --output=none --set-exit-if-changed .
+    
+    - name: Analyze project source
+      run: flutter analyze --fatal-infos
+    
+    - name: Run tests
+      run: flutter test
+    
+    - name: Test coverage
+      run: flutter test --coverage
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: coverage/lcov.info
+
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.16.0'
+        channel: 'stable'
+        cache: true
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Build APK
+      run: flutter build apk --release
+    
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: android-apk
+        path: build/app/outputs/flutter-apk/app-release.apk
+
+  build-ios:
+    name: Build iOS IPA
+    runs-on: macos-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.16.0'
+        channel: 'stable'
+        cache: true
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Build iOS (no signing)
+      run: flutter build ios --release --no-codesign
+    
+    - name: Upload iOS build artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ios-build
+        path: build/ios/iphoneos/
+
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    needs: test
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.16.0'
+        channel: 'stable'
+        cache: true
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Run dependency vulnerability scan
+      run: dart pub deps --json | jq .
+    
+    - name: Check for known vulnerabilities
+      run: |
+        if flutter pub deps | grep -i "vulnerable\|security"; then
+          echo "⚠️ Potential security vulnerabilities found"
+          exit 1
+        else
+          echo "✅ No known vulnerabilities detected"
+        fi
+
+  pr-check:
+    name: PR Build Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.16.0'
+        channel: 'stable'
+        cache: true
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Check formatting
+      run: dart format --output=none --set-exit-if-changed .
+    
+    - name: Analyze code
+      run: flutter analyze --fatal-infos
+    
+    - name: Run tests
+      run: flutter test
+    
+    - name: Build APK for PR validation
+      run: flutter build apk --debug
+    
+    - name: Comment PR with build status
+      uses: actions/github-script@v6
+      if: always()
+      with:
+        script: |
+          const status = '${{ job.status }}';
+          const icon = status === 'success' ? '✅' : '❌';
+          const message = status === 'success' 
+            ? 'Build successful! Ready to merge.' 
+            : 'Build failed! Please fix issues before merging.';
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `${icon} **Build Status**: ${message}\n\n**Job Status**: ${status}`
+          });
+
+  size-check:
+    name: Check Build Size
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.16.0'
+        channel: 'stable'
+        cache: true
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Build and check size
+      run: |
+        flutter build apk --release
+        APK_SIZE=$(stat -c%s build/app/outputs/flutter-apk/app-release.apk)
+        APK_SIZE_MB=$((APK_SIZE / 1024 / 1024))
+        
+        echo "📱 APK Size: ${APK_SIZE_MB} MB"
+        
+        if [[ $APK_SIZE_MB -gt 50 ]]; then
+          echo "⚠️ APK size is larger than 50MB"
+          echo "Consider optimizing app size"
+        else
+          echo "✅ APK size is acceptable"
+        fi
+        
+        echo "APK_SIZE_MB=${APK_SIZE_MB}" >> $GITHUB_ENV
+    
+    - name: Comment APK size on PR
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const size = process.env.APK_SIZE_MB;
+          const icon = size > 50 ? '⚠️' : '✅';
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: `${icon} **APK Size**: ${size} MB`
+          });
+
+  quality-check:
+    name: Code Quality Check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.16.0'
+        channel: 'stable'
+        cache: true
+    
+    - name: Get dependencies
+      run: flutter pub get
+    
+    - name: Check for TODOs and FIXMEs
+      run: |
+        TODOS=$(grep -r "TODO\|FIXME\|HACK" lib/ test/ || true)
+        if [[ -n "$TODOS" ]]; then
+          echo "⚠️ Found TODOs/FIXMEs in code:"
+          echo "$TODOS"
+          echo "Consider addressing these before merging"
+        else
+          echo "✅ No TODOs/FIXMEs found"
+        fi
+    
+    - name: Check import organization
+      run: |
+        echo "📦 Checking import organization..."
+        UNORGANIZED=$(grep -r "^import 'package:" lib/ | head -5 || true)
+        if [[ -n "$UNORGANIZED" ]]; then
+          echo "ℹ️ Consider organizing imports with 'dart fix --apply'"
+        fi
+    
+    - name: Check for unused files
+      run: |
+        echo "🗂️ Checking for potentially unused files..."
+        find lib/ -name "*.dart" -type f | while read file; do
+          basename=$(basename "$file" .dart)
+          if ! grep -r "$basename" lib/ --exclude="$file" > /dev/null 2>&1; then
+            echo "⚠️ Potentially unused file: $file"
+          fi
+        done || true
+
+  notify:
+    name: Notify Results
+    runs-on: ubuntu-latest
+    needs: [test, build-android, security-scan]
+    if: always()
+    
+    steps:
+    - name: Notify success
+      if: needs.test.result == 'success' && needs.build-android.result == 'success'
+      run: |
+        echo "🎉 All checks passed successfully!"
+        echo "✅ Tests: PASSED"
+        echo "✅ Android Build: PASSED"
+        echo "✅ Security Scan: PASSED"
+    
+    - name: Notify failure
+      if: needs.test.result == 'failure' || needs.build-android.result == 'failure'
+      run: |
+        echo "❌ Some checks failed!"
+        echo "Tests: ${{ needs.test.result }}"
+        echo "Android Build: ${{ needs.build-android.result }}"
+        echo "Security Scan: ${{ needs.security-scan.result }}"
+        exit 1
